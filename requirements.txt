@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+neo4j
+faiss-cpu
+sentence-transformers
+numpy
+python-dotenv
+requests
+pydantic
+streamlit
+streamlit-agraph
+beautifulsoup4
+langdetect
+html2text
+ftfy
