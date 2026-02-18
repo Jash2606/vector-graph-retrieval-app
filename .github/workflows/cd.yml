@@ -1,0 +1,75 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo " Deploying application to EC2..."
+
+            echo " Preparing directory..."
+            if [ ! -d "/projects/vector-graph-api" ]; then
+            git clone https://github.com/${{ github.repository }} /projects/vector-graph-api
+            fi
+
+            cd /projects/vector-graph-api
+
+            echo " Pulling latest code..."
+            git pull origin main
+
+            echo " Setting up virtual environment..."
+            if [ ! -d "venv" ]; then
+            python3 -m venv venv
+            fi
+            source venv/bin/activate
+
+            echo " Installing dependencies..."
+            pip install --upgrade pip
+            pip install -r requirements.txt
+
+            echo " Restarting service..."
+            sudo systemctl restart vector-graph-api
+
+            echo " Waiting for service..."
+            sleep 5
+
+            echo " Health check..."
+            curl -f http://127.0.0.1:8000/v1/health || exit 1
+
+            echo " Deployment successful!"
+
+      - name: Deployment Status
+        if: success()
+        run: echo " Application deployed successfully to EC2"
+
+      - name: Deployment Failed
+        if: failure()
+        run: echo " Deployment failed - check EC2 logs"
+
+  skip-deploy:
+    name: Skip Deployment
+    runs-on: ubuntu-latest
+    # Notify if CI failed
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+
+    steps:
+      - name: CI Failed
+        run: |
+          echo " CI workflow failed - deployment skipped"
+          echo "Fix the failing tests before deployment can proceed"
+          exit 1
