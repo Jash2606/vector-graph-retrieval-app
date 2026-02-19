@@ -22,12 +22,14 @@ jobs:
           script: |
             echo " Deploying application to EC2..."
 
+            APP_DIR=/home/ubuntu/projects/vector-graph-api
+            
             echo " Preparing directory..."
-            if [ ! -d "/projects/vector-graph-api" ]; then
-            git clone https://github.com/${{ github.repository }} /projects/vector-graph-api
+            if [ ! -d "$APP_DIR" ]; then
+            git clone https://github.com/${{ github.repository }} $APP_DIR
             fi
 
-            cd /projects/vector-graph-api
+            cd $APP_DIR
 
             echo " Pulling latest code..."
             git pull origin main
