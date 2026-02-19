@@ -1,8 +1,7 @@
 # File: app/api/routes/health.py
 """Health check routes"""
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from app.database import neo4j_driver
-from app.api.dependencies import get_neo4j_repository
 from app.core.exceptions import DatabaseConnectionError
 import logging
 

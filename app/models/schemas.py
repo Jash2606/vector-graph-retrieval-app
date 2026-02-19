@@ -1,14 +1,17 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
+
 
 class DocumentInput(BaseModel):
     text: str
     title: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = {}
 
+
 class Document(DocumentInput):
     id: str
     vector_id: Optional[int] = None
+
 
 class NodeUpdate(BaseModel):
     text: Optional[str] = None
@@ -16,11 +19,13 @@ class NodeUpdate(BaseModel):
     metadata: Optional[Dict[str, Any]] = {}
     regen_embedding: bool = False
 
+
 class Entity(BaseModel):
     id: Optional[str] = None
     name: str
     type: str
     metadata: Optional[Dict[str, Any]] = {}
+
 
 class EdgeInput(BaseModel):
     source: str
@@ -29,14 +34,17 @@ class EdgeInput(BaseModel):
     weight: float = 1.0
     metadata: Optional[Dict[str, Any]] = {}
 
+
 class SearchRequest(BaseModel):
     query_text: str
     top_k: int = 10
+
 
 class VectorSearchRequest(BaseModel):
     """Request model for pure vector search"""
     query_text: str
     top_k: int = 10
+
 
 class GraphSearchRequest(BaseModel):
     """Request model for pure graph search"""
@@ -44,11 +52,13 @@ class GraphSearchRequest(BaseModel):
     depth: int = 2
     relationship_types: Optional[List[str]] = None
 
+
 class HybridSearchRequest(SearchRequest):
     query_embedding: Optional[List[float]] = None
     vector_weight: float = 0.7
     graph_weight: float = 0.3
     graph_expand_depth: int = 1
+
 
 class SearchResult(BaseModel):
     id: str
@@ -56,6 +66,7 @@ class SearchResult(BaseModel):
     score: float
     metadata: Optional[Dict[str, Any]] = {}
     graph_info: Optional[Dict[str, Any]] = None
+
 
 class HybridSearchResultItem(BaseModel):
     id: str
@@ -65,11 +76,13 @@ class HybridSearchResultItem(BaseModel):
     final_score: float
     info: Dict[str, Any] = {}
 
+
 class HybridSearchResponse(BaseModel):
     query_text: str
     vector_weight: float
     graph_weight: float
     results: List[HybridSearchResultItem]
+
 
 class Concept(BaseModel):
     id: Optional[str] = None
@@ -77,12 +90,14 @@ class Concept(BaseModel):
     method: Optional[str] = "kmeans"
     metadata: Optional[Dict[str, Any]] = {}
 
+
 class Event(BaseModel):
     id: Optional[str] = None
     name: str
     start_date: Optional[str] = None
     end_date: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = {}
+
 
 class AttributeNode(BaseModel):
     id: Optional[str] = None

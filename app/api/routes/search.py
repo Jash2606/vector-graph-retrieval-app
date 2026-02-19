@@ -29,7 +29,7 @@ def vector_search(
 ):
     """
     Pure vector similarity search using FAISS
-    
+
     - Encodes query text
     - Searches FAISS index
     - Returns top-k similar documents
@@ -44,11 +44,14 @@ def graph_search(
 ):
     """
     Pure graph traversal from a starting node
-    
+
     - Traverses relationships up to specified depth
     - Returns nodes and edges
     """
-    return controller.graph_search(request.start_id, request.depth, request.relationship_types)
+    return controller.graph_search(
+        request.start_id,
+        request.depth,
+        request.relationship_types)
 
 
 @router.post("/hybrid", response_model=HybridSearchResponse)

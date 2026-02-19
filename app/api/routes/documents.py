@@ -30,7 +30,7 @@ def create_document(
 ):
     """
     Ingest a new document
-    
+
     - Cleans text
     - Generates embeddings
     - Stores in Neo4j and FAISS
@@ -42,7 +42,9 @@ def create_document(
     except BaseAPIException:
         raise
     except Exception as e:
-        logger.error(f"Unexpected error in create_document: {str(e)}", exc_info=True)
+        logger.error(
+            f"Unexpected error in create_document: {
+                str(e)}", exc_info=True)
         raise IngestionError(f"Unexpected error: {str(e)}")
 
 
@@ -63,7 +65,7 @@ def update_document(
 ) -> Dict[str, Any]:
     """
     Update a document
-    
+
     - Optional: Update text/title/metadata
     - Optional: Regenerate embeddings and relationships
     """

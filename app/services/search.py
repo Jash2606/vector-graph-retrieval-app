@@ -1,8 +1,7 @@
-# File: app/services/search.py
 from app.database import neo4j_driver, faiss_index
 from app.services.embedding import embedding_service
-from app.models import SearchResult
-from typing import List, Dict, Set
+from app.models import SearchResult, HybridSearchResponse
+from typing import List, Dict
 import logging
 import spacy
 import math
@@ -17,22 +16,27 @@ except OSError:
     logger.warning("Spacy model not found. Query parsing will be limited.")
     nlp = None
 
+
 def vector_search(query_text: str, top_k: int) -> List[SearchResult]:
     # 1. Encode query
     query_vector = embedding_service.encode(query_text)
-    
+
     # 2. Search FAISS
     distances, indices = faiss_index.search(query_vector, top_k)
-    
+
     results = []
     for i, idx in enumerate(indices):
-        if idx == -1: continue
+        if idx == -1:
+            continue
         doc_id = faiss_index.id_map.get(idx)
-        if not doc_id: continue
-        
+        if not doc_id:
+            continue
+
         # Fetch details from Neo4j
         with neo4j_driver.get_session() as session:
-            res = session.run("MATCH (d:Document {id: $id}) RETURN d", id=doc_id)
+            res = session.run(
+                "MATCH (d:Document {id: $id}) RETURN d",
+                id=doc_id)
             record = res.single()
             if record:
                 node = record['d']
@@ -45,18 +49,22 @@ def vector_search(query_text: str, top_k: int) -> List[SearchResult]:
                 ))
     return results
 
-def graph_search(start_id: str, depth: int, relationship_types: List[str] = None) -> Dict:
+
+def graph_search(
+        start_id: str,
+        depth: int,
+        relationship_types: List[str] = None) -> Dict:
     # Construct relationship pattern
     # If types provided: -[:TYPE1|TYPE2*1..depth]-
     # If not: -[*1..depth]-
-    
+
     rel_pattern = ""
     if relationship_types:
         # Sanitize types to prevent injection (basic check)
         safe_types = [t for t in relationship_types if t.isalnum() or "_" in t]
         if safe_types:
             rel_pattern = ":" + "|".join(safe_types)
-            
+
     # Fetch nodes and relationships within depth
     # We use the explicit ID query pattern we established earlier
     final_query = f"""
@@ -67,38 +75,39 @@ def graph_search(start_id: str, depth: int, relationship_types: List[str] = None
     WHERE target IN nodes
     RETURN source, r, target
     """
-    
+
     data = {"nodes": [], "edges": []}
-    
+
     with neo4j_driver.get_session() as session:
         res = session.run(final_query, start_id=start_id)
         seen_nodes = set()
         seen_edges = set()
-        
+
         for record in res:
             source = record['source']
             target = record['target']
             rel = record['r']
-            
+
             # Helper to safely get ID
             def get_node_id(node):
-                return node.get('id') or node.element_id if hasattr(node, 'element_id') else str(node.id)
+                return node.get('id') or node.element_id if hasattr(
+                    node, 'element_id') else str(node.id)
 
             source_id = get_node_id(source)
             target_id = get_node_id(target)
-            
+
             if source_id not in seen_nodes:
                 s_dict = dict(source)
-                s_dict['id'] = source_id # Ensure ID is present for frontend
+                s_dict['id'] = source_id  # Ensure ID is present for frontend
                 data["nodes"].append(s_dict)
                 seen_nodes.add(source_id)
-            
+
             if target_id not in seen_nodes:
                 t_dict = dict(target)
-                t_dict['id'] = target_id # Ensure ID is present for frontend
+                t_dict['id'] = target_id  # Ensure ID is present for frontend
                 data["nodes"].append(t_dict)
                 seen_nodes.add(target_id)
-                
+
             edge_key = (source_id, target_id, rel.type)
             if edge_key not in seen_edges:
                 data["edges"].append({
@@ -108,10 +117,17 @@ def graph_search(start_id: str, depth: int, relationship_types: List[str] = None
                     "weight": rel.get('weight', 1.0)
                 })
                 seen_edges.add(edge_key)
-                
+
     return data
 
-def hybrid_search(query_text: str, vector_weight: float, graph_weight: float, top_k: int, graph_depth: int, query_embedding: List[float] = None) -> "HybridSearchResponse":
+
+def hybrid_search(
+        query_text: str,
+        vector_weight: float,
+        graph_weight: float,
+        top_k: int,
+        graph_depth: int,
+        query_embedding: List[float] = None) -> "HybridSearchResponse":
     # 0. Normalize alpha / beta so they sum to 1
     total = vector_weight + graph_weight
     if total <= 0:
@@ -136,13 +152,16 @@ def hybrid_search(query_text: str, vector_weight: float, graph_weight: float, to
         distances, indices = faiss_index.search(query_vector, top_k * 3)
         vector_results = []
         for i, idx in enumerate(indices):
-            if idx == -1: continue
+            if idx == -1:
+                continue
             doc_id = faiss_index.id_map.get(idx)
-            if not doc_id: continue
-            
+            if not doc_id:
+                continue
+
             # Fetch details from Neo4j
             with neo4j_driver.get_session() as session:
-                res = session.run("MATCH (d:Document {id: $id}) RETURN d", id=doc_id)
+                res = session.run(
+                    "MATCH (d:Document {id: $id}) RETURN d", id=doc_id)
                 record = res.single()
                 if record:
                     node = record['d']
@@ -182,7 +201,8 @@ def hybrid_search(query_text: str, vector_weight: float, graph_weight: float, to
                         text=node.get("text"),
                         score=0.0,  # vector score placeholder
                         metadata=node,
-                        graph_info={"hops": 1, "expansion_weight": edge_weight},
+                        graph_info={
+                            "hops": 1, "expansion_weight": edge_weight},
                     )
                 else:
                     gi = candidates[doc_id].graph_info
@@ -225,7 +245,8 @@ def hybrid_search(query_text: str, vector_weight: float, graph_weight: float, to
     for doc_id, r in candidates.items():
         # --- Vector Component ---
         raw_v = r.score  # FAISS similarity
-        # clamp vector similarity into [0,1]; adjust if your model behaves differently
+        # clamp vector similarity into [0,1]; adjust if your model behaves
+        # differently
         v_score_norm = max(0.0, min(1.0, raw_v))
 
         # --- Graph Connectivity Component ---
@@ -251,11 +272,11 @@ def hybrid_search(query_text: str, vector_weight: float, graph_weight: float, to
         }
         if "expansion_weight" in r.graph_info:
             info["edge_weight"] = r.graph_info["expansion_weight"]
-        
+
         from app.models import HybridSearchResultItem
         final_results_items.append(HybridSearchResultItem(
             id=doc_id,
-            text=r.text, # Use text instead of title
+            text=r.text,  # Use text instead of title
             vector_score=raw_v,
             graph_score=g_component,
             final_score=final_score,
@@ -263,7 +284,7 @@ def hybrid_search(query_text: str, vector_weight: float, graph_weight: float, to
         ))
 
     final_results_items.sort(key=lambda x: x.final_score, reverse=True)
-    
+
     from app.models import HybridSearchResponse
     return HybridSearchResponse(
         query_text=query_text,

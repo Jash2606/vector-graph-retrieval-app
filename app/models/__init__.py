@@ -1,2 +1,36 @@
 # Models package - Re-export for backward compatibility
-from app.models.schemas import *
+from app.models.schemas import (  # noqa: F401
+    DocumentInput,
+    Document,
+    NodeUpdate,
+    Entity,
+    EdgeInput,
+    SearchRequest,
+    VectorSearchRequest,
+    GraphSearchRequest,
+    HybridSearchRequest,
+    SearchResult,
+    HybridSearchResultItem,
+    HybridSearchResponse,
+    Concept,
+    Event,
+    AttributeNode,
+)
+
+__all__ = [
+    "DocumentInput",
+    "Document",
+    "NodeUpdate",
+    "Entity",
+    "EdgeInput",
+    "SearchRequest",
+    "VectorSearchRequest",
+    "GraphSearchRequest",
+    "HybridSearchRequest",
+    "SearchResult",
+    "HybridSearchResultItem",
+    "HybridSearchResponse",
+    "Concept",
+    "Event",
+    "AttributeNode",
+]

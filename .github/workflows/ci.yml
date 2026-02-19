@@ -29,7 +29,7 @@ jobs:
           # Stop build if there are Python syntax errors or undefined names
           flake8 app --count --select=E9,F63,F7,F82 --show-source --statistics
           # Warnings as non-blocking (exit-zero)
-          flake8 app --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
+          flake8 app --count --exit-zero --max-complexity=20 --max-line-length=120 --statistics
 
   test:
     name: Run Tests

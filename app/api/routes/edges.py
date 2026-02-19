@@ -27,7 +27,7 @@ def create_edge(
 ):
     """
     Create a relationship between two nodes
-    
+
     - Validates edge type against whitelist
     - Creates relationship in Neo4j
     """

@@ -14,8 +14,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Hybrid Vector-Graph Retrieval API",
     description="Combines semantic vector search with graph knowledge traversal",
-    version="2.0.0"
-)
+    version="2.0.0")
 
 
 @app.exception_handler(BaseAPIException)
