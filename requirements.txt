@@ -13,3 +13,4 @@ langdetect
 html2text
 ftfy
 spacy
+beautifulsoup4
