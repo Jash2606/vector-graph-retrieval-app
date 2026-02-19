@@ -19,8 +19,8 @@ def root():
 def health_check():
     """Health check endpoint"""
     try:
-        neo4j_driver.get_driver()
+        neo4j_driver.ping()
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")
-        raise DatabaseConnectionError(str(e))
+        raise DatabaseConnectionError("Neo4j", str(e))

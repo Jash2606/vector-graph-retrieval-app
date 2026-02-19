@@ -87,11 +87,20 @@ def test_root_api(client):
 @patch('app.api.routes.health.neo4j_driver')
 def test_health_api(mock_driver, client):
     """GET /health - Health check"""
-    mock_driver.get_driver.return_value = Mock()
-    
+    mock_driver.ping.return_value = None  # ping() returns None on success
+
     response = client.get("/v1/health")
     assert response.status_code == 200
     assert response.json()["status"] == "healthy"
+
+
+@patch('app.api.routes.health.neo4j_driver')
+def test_health_api_db_down(mock_driver, client):
+    """GET /health - Returns 503 when DB is unreachable"""
+    mock_driver.ping.side_effect = Exception("Connection refused")
+
+    response = client.get("/v1/health")
+    assert response.status_code == 503
 
 
 # ============== Document APIs ==============

@@ -6,8 +6,6 @@ import numpy as np
 from app.config import settings
 
 
-
-
 class Neo4jDriver:
     def __init__(self):
         self.driver = GraphDatabase.driver(
@@ -20,6 +18,11 @@ class Neo4jDriver:
 
     def get_session(self):
         return self.driver.session()
+
+    def ping(self):
+        """Verify database connectivity by running a test query."""
+        with self.driver.session() as session:
+            session.run("RETURN 1")
 
 
 class FaissIndex:
