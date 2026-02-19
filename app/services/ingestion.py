@@ -231,10 +231,7 @@ def create_edge(edge_input: EdgeInput):
 
     try:
         with neo4j_driver.get_session() as session:
-            logger.info(
-                f"Creating edge from {
-                    edge_input.source} to {
-                    edge_input.target}")
+            logger.info(f"Creating edge from {edge_input.source} to {edge_input.target}")
             result = session.run(query,
                                  source_id=edge_input.source,
                                  target_id=edge_input.target,
@@ -243,9 +240,8 @@ def create_edge(edge_input: EdgeInput):
             record = result.single()
             if not record:
                 logger.error(
-                    f"Could not create edge between {
-                        edge_input.source} and {
-                        edge_input.target}. Nodes might not exist.")
+                    f"Could not create edge between {edge_input.source} and {edge_input.target}. Nodes might not exist."
+                )
                 raise EdgeCreationError(
                     edge_input.source,
                     edge_input.target,
