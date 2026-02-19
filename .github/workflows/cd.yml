@@ -22,17 +22,19 @@ jobs:
           script: |
             echo " Deploying application to EC2..."
 
-            APP_DIR=/home/ubuntu/projects/vector-graph-api
+            BASE_DIR=/home/ubuntu/projects/vector-graph-api
+            APP_DIR=$BASE_DIR/vector-graph-retrieval-app
             
             echo " Preparing directory..."
             if [ ! -d "$APP_DIR" ]; then
-            git clone https://github.com/${{ github.repository }} $APP_DIR
+            git clone https://github.com/${{ github.repository }} $BASE_DIR
             fi
 
-            cd $APP_DIR
+            cd "$APP_DIR"
 
-            echo " Pulling latest code..."
-            git pull origin main
+            echo " Pulling latest changes..."
+            git fetch origin main
+            git reset --hard origin/main
 
             echo " Setting up virtual environment..."
             if [ ! -d "venv" ]; then

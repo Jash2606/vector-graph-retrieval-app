@@ -1,26 +1,39 @@
 import os
 import pickle
+import logging
 from neo4j import GraphDatabase
 import faiss
 import numpy as np
 from app.config import settings
 
+logger = logging.getLogger(__name__)
+
 
 class Neo4jDriver:
     def __init__(self):
-        self.driver = GraphDatabase.driver(
-            settings.NEO4J_URI,
-            auth=(settings.NEO4J_USER, settings.NEO4J_PASSWORD)
-        )
+        try:
+            self.driver = GraphDatabase.driver(
+                settings.NEO4J_URI,
+                auth=(settings.NEO4J_USER, settings.NEO4J_PASSWORD)
+            )
+            logger.info("Neo4j driver initialised")
+        except Exception as e:
+            logger.error(f"Neo4j driver init failed: {e}")
+            self.driver = None
 
     def close(self):
-        self.driver.close()
+        if self.driver:
+            self.driver.close()
 
     def get_session(self):
+        if not self.driver:
+            raise ConnectionError("Neo4j driver is not initialised")
         return self.driver.session()
 
     def ping(self):
         """Verify database connectivity by running a test query."""
+        if not self.driver:
+            raise ConnectionError("Neo4j driver is not initialised")
         with self.driver.session() as session:
             session.run("RETURN 1")
 
