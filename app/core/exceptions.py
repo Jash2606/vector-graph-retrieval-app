@@ -45,8 +45,7 @@ class InvalidEdgeTypeError(BaseAPIException):
 
     def __init__(self, edge_type: str, allowed_types: list):
         super().__init__(
-            f"Invalid edge type '{edge_type}'. Allowed types: {
-                ', '.join(allowed_types)}",
+            f"Invalid edge type '{edge_type}'. Allowed types: {', '.join(allowed_types)}",
             status_code=400)
 
 

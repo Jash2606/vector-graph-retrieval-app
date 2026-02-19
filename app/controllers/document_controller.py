@@ -51,12 +51,7 @@ class DocumentController:
                 if i == 0:
                     first_doc_id = doc_id
 
-                chunk_title = f"{
-                    doc_input.title} (Chunk {
-                    i +
-                    1})" if doc_input.title else f"Chunk {
-                    i +
-                    1}"
+                chunk_title = f"{doc_input.title} (Chunk {i + 1})" if doc_input.title else f"Chunk {i + 1}"
 
                 # 4. Generate Embedding
                 embedding = embedding_service.encode(chunk_text)
